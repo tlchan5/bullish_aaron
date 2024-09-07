@@ -74,4 +74,28 @@ class MarketDataEngineTest {
         // Then
         assertThat(tickQueue.size(), is(0));
     }
+
+    @Test
+    void GIVEN_engine_with_high_precision_price_WHEN_engine_runs_THEN_double_precision_is_limited() {
+        // Given
+        int maxTickCount = 1;
+        double highPrecisionPrice = 0.12345678901234567;  // More than the precision of double can handle
+        PriceGenerator priceGenerator = mock(PriceGenerator.class);
+
+        when(priceGenerator.generatePrice(anyInt())).thenReturn(10d);
+
+        MarketDataEngine engine = new MarketDataEngine(tickQueue, maxTickCount, "BTC-USD", highPrecisionPrice, priceGenerator);
+
+        // When
+        engine.run();
+
+        // Then
+        assertThat(tickQueue.size(), is(1));
+        MarketTick tick = tickQueue.poll();
+        assertThat(tick, not(nullValue()));
+        assertThat(tick.market(), is(MARKET));
+        // Assert that the price precision is limited to double's precision (~15-17 significant digits)
+        // 10 + 0.12345678901234567 = 10.12345678901234567
+        assertEquals(10.1234567890123456, tick.price(), 0.000000000000001);
+    }
 }
