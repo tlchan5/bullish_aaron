@@ -56,4 +56,22 @@ class MarketDataEngineTest {
         assertThat(tick.price(), is(initialPrice + newPrice));
         assertThat(tick.market(), is(MARKET));
     }
+
+    @Test
+    void GIVEN_price_generator_generate_a_negative_new_price_WHEN_engine_runs_THEN_no_tick_added_to_queue() {
+        // Given
+        int initialPrice = 1;
+        double newPrice = -10;
+        PriceGenerator priceGenerator = mock(StandardPriceGenerator.class);
+
+        when(priceGenerator.generatePrice(anyInt())).thenReturn(newPrice);
+
+        MarketDataEngine engine = new MarketDataEngine(tickQueue, 1, MARKET, initialPrice, priceGenerator);
+
+        // When
+        engine.run();
+
+        // Then
+        assertThat(tickQueue.size(), is(0));
+    }
 }

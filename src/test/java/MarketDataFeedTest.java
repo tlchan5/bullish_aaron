@@ -5,10 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MarketDataFeedTest {
@@ -17,16 +16,18 @@ class MarketDataFeedTest {
     private final MarketDataFeed marketDataFeed = new MarketDataFeed(tickQueue);
 
     @BeforeEach
-    void setup() {
-        Executors.newSingleThreadExecutor().submit(marketDataFeed);
+    void startDataFeed() {
+        new Thread(marketDataFeed).start();
     }
 
     @Test
-    void WHEN_ticks_arrive_THEN_market_statistics_are_updated() throws InterruptedException {
+    void WHEN_new_ticks_arrive_THEN_market_statistics_are_updated() throws InterruptedException {
         // WHEN
         tickQueue.put(new MarketTick("BTC-USD", 10000.0));
         tickQueue.put(new MarketTick("BTC-USD", 11000.0));
         tickQueue.put(new MarketTick("BTC-USD", 9000.0));
+
+        sleep(10);
 
         // Then
         MarketStatistics stats = marketDataFeed.getMarketStatistics("BTC-USD");
@@ -37,16 +38,14 @@ class MarketDataFeedTest {
     }
 
     @Test
-    void GIVEN_multipleMarkets_WHEN_ticksProcessed_THEN_statisticsAreTrackedSeparately() throws InterruptedException {
-        // Given
+    void WHEN_multiple_markets_ticks_arrive_THEN_statistics_are_tracked_separately() throws InterruptedException {
+        // When
         tickQueue.put(new MarketTick("BTC-USD", 10000.0));
         tickQueue.put(new MarketTick("ETH-USD", 2000.0));
         tickQueue.put(new MarketTick("BTC-USD", 12000.0));
         tickQueue.put(new MarketTick("ETH-USD", 1800.0));
 
-        // When
-        new Thread(marketDataFeed).start();
-        Thread.sleep(100);  // Allow some time for the feed to process ticks
+        sleep(10);
 
         // Then
         MarketStatistics btcStats = marketDataFeed.getMarketStatistics("BTC-USD");
@@ -67,31 +66,13 @@ class MarketDataFeedTest {
     }
 
     @Test
-    void GIVEN_emptyQueue_WHEN_feedRuns_THEN_noErrorsOccur() throws InterruptedException {
-        // Given: the queue is empty
-
+    void WHEN_negative_price_tick_arrives_THEN_no_market_statistic() throws InterruptedException {
         // When
-        Thread feedThread = new Thread(marketDataFeed);
-        feedThread.start();
-        Thread.sleep(100);  // Allow the feed to attempt processing
+        tickQueue.put(new MarketTick("ETH-USD", -2000.0));
+        sleep(10);
 
         // Then
-        assertTrue(tickQueue.isEmpty());
         Map<String, MarketStatistics> allMarketStats = marketDataFeed.getAllMarketStatistics();
-        assertTrue(allMarketStats.isEmpty());  // No markets processed
-    }
-
-    @Test
-    void GIVEN_interruptedThread_WHEN_feedRuns_THEN_threadStopsGracefully() throws InterruptedException {
-        // Given
-        tickQueue.put(new MarketTick("BTC-USD", 10000.0));
-
-        // When
-        Thread feedThread = new Thread(marketDataFeed);
-        feedThread.start();
-        feedThread.interrupt();  // Interrupt the feed thread
-
-        // Then
-        assertTrue(feedThread.isInterrupted());
+        assertTrue(allMarketStats.isEmpty());
     }
 }

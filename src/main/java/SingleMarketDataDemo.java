@@ -3,7 +3,7 @@ import data.MarketTick;
 import java.util.concurrent.*;
 
 public class SingleMarketDataDemo {
-    public static void main(String[] args) throws InterruptedException, ExecutionException, TimeoutException {
+    public static void main(String[] args) throws InterruptedException, ExecutionException {
         BlockingQueue<MarketTick> tickQueue = new ArrayBlockingQueue<>(100);
 
         // Create the engine and feed
@@ -18,10 +18,12 @@ public class SingleMarketDataDemo {
         executorService.submit(feed);
 
         // Output the statistics for BTC-USD
+        Thread.sleep(10);
         System.out.println("BTC-USD : " + feed.getMarketStatistics("BTC-USD"));
 
         // Shutdown the ExecutorService gracefully after all tasks are complete
         executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.SECONDS);
 
     }
 }

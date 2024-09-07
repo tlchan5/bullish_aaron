@@ -1,6 +1,7 @@
 import data.MarketTick;
 import generator.PriceGenerator;
 import generator.StandardPriceGenerator;
+import validation.ValidationUtil;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -27,12 +28,18 @@ public class MarketDataEngine implements Runnable {
     public void run() {
         try {
             for (int tickCount = 0; tickCount < maxTickCount; tickCount++) {
-                currentPrice += priceGenerator.generatePrice(tickCount);
+                double newPrice = currentPrice + priceGenerator.generatePrice(tickCount);
+                if (!ValidationUtil.isValidPrice(newPrice)) {
+                    System.out.println("Invalid price (" + newPrice + ") for market: " + market + ". Skipping tick.");
+                    continue;
+                }
+
+                currentPrice = newPrice;
                 MarketTick tick = new MarketTick(market, currentPrice);
                 tickQueue.put(tick);  // Adds the tick to the queue
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();  // Restore interrupt status
+            Thread.currentThread().interrupt();
         }
     }
 }

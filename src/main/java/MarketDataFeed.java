@@ -1,5 +1,6 @@
 import data.MarketStatistics;
 import data.MarketTick;
+import validation.ValidationUtil;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -30,6 +31,10 @@ public class MarketDataFeed implements Runnable {
     private void processTick(MarketTick tick) {
         String market = tick.market();
         double price = tick.price();
+        if (!ValidationUtil.isValidPrice(price)) {
+            System.out.println("Invalid price (" + price + ") for market: " + market + ". Skip processing tick.");
+            return;
+        }
 
         // Update or create the statistics for this specific market
         marketStats.computeIfAbsent(market, key -> new MarketStatistics(price))
