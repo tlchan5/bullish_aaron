@@ -9,11 +9,20 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class MarketDataEngineTest {
     private final BlockingQueue<MarketTick> tickQueue = new LinkedBlockingQueue<>();
     private static final String MARKET = "BTC-USD";
+
+    @Test
+    void WHEN_construct_engine_with_invalid_price_THEN_throw_exception() {
+        // WHEN
+
+        // THEN
+        assertThrows(IllegalStateException.class, () -> new MarketDataEngine(tickQueue, 1, MARKET, -100));
+    }
 
     @Test
     void GIVEN_engine_with_standard_price_generator_WHEN_engine_runs_THEN_ticks_added_to_queue() {

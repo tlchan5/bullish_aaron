@@ -14,7 +14,6 @@ The application also supports different price generation strategies, including a
     - Standard price increments.
     - Randomized price adjustments based on tick count (odd/even).
 - **Price Validation**: Ensure that generated prices are non-negative.
-- **Concurrent Processing**: The engine and feed run concurrently using Java's `ExecutorService`.
 
 ## Components
 
@@ -43,7 +42,7 @@ Defines the contract for generating prices based on the current tick count. Two 
 ### 4. `ValidationUtil`
 A utility class used for validating that market prices are non-negative.
 
-### 5. Demo (`SingleMarketDataDemo`)
+### 5. Demo (`MarketDataEngineDemo`)
 A simple demo that showcases how to run the `MarketDataEngine` and `MarketDataFeed` concurrently using an `ExecutorService`. 
 
 ## Project Structure

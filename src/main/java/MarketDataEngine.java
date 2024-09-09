@@ -20,8 +20,12 @@ public class MarketDataEngine implements Runnable {
         this.tickQueue = tickQueue;
         this.maxTickCount = maxTickCount;
         this.market = market;
-        this.currentPrice = initialPrice;
         this.priceGenerator = priceGenerator;
+
+        if (initialPrice < 0) {
+            throw new IllegalStateException("Invalid initial price " + initialPrice);
+        }
+        this.currentPrice = initialPrice;
     }
 
     @Override
